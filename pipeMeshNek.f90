@@ -267,10 +267,14 @@ program pipeMeshNek
 
             elem(i)%y(1) = elem(i-1)%y(4)
             elem(i)%y(2) = elem(i-1)%y(3)
-            elem(i)%y(3) = oR * DCOS( DASIN((elem(i-1)%x(3)+(oR-lSq/nSq*col)*SQ22)/oR) ) &
-                           - (oR - lSq/nSq*col)*SQ22 * 1.5*(nSq-col+2)
-            elem(i)%y(4) = oR * DCOS( DASIN((elem(i-1)%x(4)+(oR-lSq/nSq*col)*SQ22)/oR) ) &
-                           - (oR - lSq/nSq*col)*SQ22 * 1.5*(nSq-col+2)
+!            elem(i)%y(3) = oR * DCOS( DASIN((elem(i-1)%x(3)+(oR-lSq/nSq*col)*SQ22)/oR) ) &
+!                           - (oR - lSq/nSq*col)*SQ22 * 1.5*(nSq-col+2)
+!            elem(i)%y(4) = oR * DCOS( DASIN((elem(i-1)%x(4)+(oR-lSq/nSq*col)*SQ22)/oR) ) &
+!                           - (oR - lSq/nSq*col)*SQ22 * 1.5*(nSq-col+2)
+            elem(i)%y(3) = oR * DCOS( DASIN(elem(i-1)%x(3)/oR) ) &
+                           - (oR - lSq/nSq*col)*SQ22
+            elem(i)%y(4) = oR * DCOS( DASIN(elem(i-1)%x(4)/oR) ) &
+                           - (oR - lSq/nSq*col)*SQ22
 
             elem(i)%x(1) = elem(i-1)%x(4)
             elem(i)%x(2) = elem(i-1)%x(3)
@@ -278,7 +282,7 @@ program pipeMeshNek
             elem(i)%x(4) = elem(i)%x(1)
 
             if ( debugFlag ) then
-               write(*,*) 'lr ', row, col, iR, oR
+               write(*,*) 'lr ', row, col, rP0+(rP1-rP0)/nSq*col
             endif
 
          ELSEIF ( row > col ) THEN
@@ -302,14 +306,18 @@ program pipeMeshNek
             elem(i)%y(4) = elem(i)%y(3)
 
             elem(i)%x(1) = elem(i-nSq)%x(2)
-            elem(i)%x(2) = oR * DSIN( DACOS((elem(i)%y(2)+(oR-lSq/nSq*row)*SQ22)/oR) ) &
-                           - (oR - lSq/nSq*row)*SQ22 * 1.5*(nSq-row+2)
-            elem(i)%x(3) = oR * DSIN( DACOS((elem(i)%y(4)+(oR-lSq/nSq*row)*SQ22)/oR) ) &
-                           - (oR - lSq/nSq*row)*SQ22 * 1.5*(nSq-row+2)
+!            elem(i)%x(2) = oR * DSIN( DACOS((elem(i)%y(2)+(oR-lSq/nSq*row)*SQ22)/oR) ) &
+!                           - (oR - lSq/nSq*row)*SQ22 * 1.5*(nSq-row+2)
+!            elem(i)%x(3) = oR * DSIN( DACOS((elem(i)%y(4)+(oR-lSq/nSq*row)*SQ22)/oR) ) &
+!                           - (oR - lSq/nSq*row)*SQ22 * 1.5*(nSq-row+2)
+            elem(i)%x(2) = oR * DSIN( DACOS(elem(i)%y(2)/oR) ) &
+                           - (oR - lSq/nSq*row)*SQ22
+            elem(i)%x(3) = oR * DSIN( DACOS(elem(i)%y(4)/oR) ) &
+                           - (oR - lSq/nSq*row)*SQ22
             elem(i)%x(4) = elem(i-nSq)%x(3)
 
             if ( debugFlag ) then
-               write(*,*) 'ul ', row, col, iR
+               write(*,*) 'ul ', row, col, rP0+(rP1-rP0)/nSq*row
             endif
 
          ELSE
@@ -329,12 +337,16 @@ program pipeMeshNek
             elem(i)%y(1) = lSq/nSq * (row-1) * SQ22
             elem(i)%y(2) = elem(i)%y(1)
             elem(i)%y(3) = lSq/nSq * row     * SQ22
-            elem(i)%y(4) = oR * DCOS( DASIN((lSq/nSq*(row-1)*SQ22+(oR-lSq/nSq*col)*SQ22)/oR) ) &
-                           - (oR - lSq/nSq*row)*SQ22 * 1.5*(nSq-row+2)
+!            elem(i)%y(4) = oR * DCOS( DASIN((lSq/nSq*(row-1)*SQ22+(oR-lSq/nSq*col)*SQ22)/oR) ) &
+!                           - (oR - lSq/nSq*row)*SQ22 * 1.5*(nSq-row+2)
+            elem(i)%y(4) = oR * DCOS( DASIN(lSq/nSq*(row-1)*SQ22/oR) ) &
+                           - (oR - lSq/nSq*row)*SQ22
 
             elem(i)%x(1) = lSq/nSq * (row-1) * SQ22
-            elem(i)%x(2) = oR * DSIN( DACOS((elem(i)%y(2)+(oR-lSq/nSq*col)*SQ22)/oR) ) &
-                           - (oR - lSq/nSq*row)*SQ22 * 1.5*(nSq-row+2)
+!            elem(i)%x(2) = oR * DSIN( DACOS((elem(i)%y(2)+(oR-lSq/nSq*col)*SQ22)/oR) ) &
+!                           - (oR - lSq/nSq*row)*SQ22 * 1.5*(nSq-row+2)
+            elem(i)%x(2) = oR * DSIN( DACOS(elem(i)%y(2)/oR) ) &
+                           - (oR - lSq/nSq*row)*SQ22
             elem(i)%x(3) = lSq/nSq * row     * SQ22
             elem(i)%x(4) = elem(i)%x(1)
 
