@@ -256,14 +256,14 @@ program pipeMeshNek
             iR = lSq/nSq * (col-1) * (rP0 + (rP1-rP0)/nSq*(col-1))
             oR = lSq/nSq *  col    * (rP0 + (rP1-rP0)/nSq* col   )
 
-!            elem(i)%curvedEdge(1) = .TRUE.
-!            elem(i)%curvedEdge(3) = .TRUE.
-!            elem(i)%curvedEdge(5) = .TRUE.
-!            elem(i)%curvedEdge(7) = .TRUE.
-!            elem(i)%curvedEdgeR(1) = -iR
-!            elem(i)%curvedEdgeR(3) = oR
-!            elem(i)%curvedEdgeR(5) = -iR
-!            elem(i)%curvedEdgeR(7) = oR
+            elem(i)%curvedEdge(1) = .TRUE.
+            elem(i)%curvedEdge(3) = .TRUE.
+            elem(i)%curvedEdge(5) = .TRUE.
+            elem(i)%curvedEdge(7) = .TRUE.
+            elem(i)%curvedEdgeR(1) = -iR
+            elem(i)%curvedEdgeR(3) = oR
+            elem(i)%curvedEdgeR(5) = -iR
+            elem(i)%curvedEdgeR(7) = oR
 
             elem(i)%y(1) = elem(i-1)%y(4)
             elem(i)%y(2) = elem(i-1)%y(3)
@@ -272,9 +272,9 @@ program pipeMeshNek
 !            elem(i)%y(4) = oR * DCOS( DASIN((elem(i-1)%x(4)+(oR-lSq/nSq*col)*SQ22)/oR) ) &
 !                           - (oR - lSq/nSq*col)*SQ22 * 1.5*(nSq-col+2)
             elem(i)%y(3) = oR * DCOS( DASIN(elem(i-1)%x(3)/oR) ) &
-                           - (oR - lSq/nSq*col)*SQ22
+                           - (oR*DCOS(DASIN(lSq/nSq*col*SQ22/oR)) - lSq/nSq*col*SQ22)
             elem(i)%y(4) = oR * DCOS( DASIN(elem(i-1)%x(4)/oR) ) &
-                           - (oR - lSq/nSq*col)*SQ22
+                           - (oR*DCOS(DASIN(lSq/nSq*col*SQ22/oR)) - lSq/nSq*col*SQ22)
 
             elem(i)%x(1) = elem(i-1)%x(4)
             elem(i)%x(2) = elem(i-1)%x(3)
@@ -291,14 +291,14 @@ program pipeMeshNek
             iR = lSq/nSq * (row-1) * (rP0 + (rP1-rP0)/nSq*(row-1))
             oR = lSq/nSq *  row    * (rP0 + (rP1-rP0)/nSq* row   )
 
-!            elem(i)%curvedEdge(2) = .TRUE.
-!            elem(i)%curvedEdge(4) = .TRUE.
-!            elem(i)%curvedEdge(6) = .TRUE.
-!            elem(i)%curvedEdge(8) = .TRUE.
-!            elem(i)%curvedEdgeR(2) = oR
-!            elem(i)%curvedEdgeR(4) = -iR
-!            elem(i)%curvedEdgeR(6) = oR
-!            elem(i)%curvedEdgeR(8) = -iR
+            elem(i)%curvedEdge(2) = .TRUE.
+            elem(i)%curvedEdge(4) = .TRUE.
+            elem(i)%curvedEdge(6) = .TRUE.
+            elem(i)%curvedEdge(8) = .TRUE.
+            elem(i)%curvedEdgeR(2) = oR
+            elem(i)%curvedEdgeR(4) = -iR
+            elem(i)%curvedEdgeR(6) = oR
+            elem(i)%curvedEdgeR(8) = -iR
 
             elem(i)%y(1) = elem(i-nSq)%y(2)
             elem(i)%y(2) = elem(i)%y(1)
@@ -311,9 +311,9 @@ program pipeMeshNek
 !            elem(i)%x(3) = oR * DSIN( DACOS((elem(i)%y(4)+(oR-lSq/nSq*row)*SQ22)/oR) ) &
 !                           - (oR - lSq/nSq*row)*SQ22 * 1.5*(nSq-row+2)
             elem(i)%x(2) = oR * DSIN( DACOS(elem(i)%y(2)/oR) ) &
-                           - (oR - lSq/nSq*row)*SQ22
+                           - (oR*DCOS(DASIN(lSq/nSq*row*SQ22/oR)) - lSq/nSq*row*SQ22)
             elem(i)%x(3) = oR * DSIN( DACOS(elem(i)%y(4)/oR) ) &
-                           - (oR - lSq/nSq*row)*SQ22
+                           - (oR*DCOS(DASIN(lSq/nSq*row*SQ22/oR)) - lSq/nSq*row*SQ22)
             elem(i)%x(4) = elem(i-nSq)%x(3)
 
             if ( debugFlag ) then
@@ -325,14 +325,14 @@ program pipeMeshNek
 
             oR = lSq/nSq * row * (rP0 + (rP1-rP0)/nSq*row)
 
-!            elem(i)%curvedEdge(2) = .TRUE.
-!            elem(i)%curvedEdge(3) = .TRUE.
-!            elem(i)%curvedEdge(6) = .TRUE.
-!            elem(i)%curvedEdge(7) = .TRUE.
-!            elem(i)%curvedEdgeR(2) = oR
-!            elem(i)%curvedEdgeR(3) = oR
-!            elem(i)%curvedEdgeR(6) = oR
-!            elem(i)%curvedEdgeR(7) = oR
+            elem(i)%curvedEdge(2) = .TRUE.
+            elem(i)%curvedEdge(3) = .TRUE.
+            elem(i)%curvedEdge(6) = .TRUE.
+            elem(i)%curvedEdge(7) = .TRUE.
+            elem(i)%curvedEdgeR(2) = oR
+            elem(i)%curvedEdgeR(3) = oR
+            elem(i)%curvedEdgeR(6) = oR
+            elem(i)%curvedEdgeR(7) = oR
 
             elem(i)%y(1) = lSq/nSq * (row-1) * SQ22
             elem(i)%y(2) = elem(i)%y(1)
@@ -340,13 +340,13 @@ program pipeMeshNek
 !            elem(i)%y(4) = oR * DCOS( DASIN((lSq/nSq*(row-1)*SQ22+(oR-lSq/nSq*col)*SQ22)/oR) ) &
 !                           - (oR - lSq/nSq*row)*SQ22 * 1.5*(nSq-row+2)
             elem(i)%y(4) = oR * DCOS( DASIN(lSq/nSq*(row-1)*SQ22/oR) ) &
-                           - (oR - lSq/nSq*row)*SQ22
+                           - (oR*DCOS(DASIN(lSq/nSq*col*SQ22/oR)) - lSq/nSq*col*SQ22)
 
             elem(i)%x(1) = lSq/nSq * (row-1) * SQ22
 !            elem(i)%x(2) = oR * DSIN( DACOS((elem(i)%y(2)+(oR-lSq/nSq*col)*SQ22)/oR) ) &
 !                           - (oR - lSq/nSq*row)*SQ22 * 1.5*(nSq-row+2)
             elem(i)%x(2) = oR * DSIN( DACOS(elem(i)%y(2)/oR) ) &
-                           - (oR - lSq/nSq*row)*SQ22
+                           - (oR*DCOS(DASIN(lSq/nSq*row*SQ22/oR)) - lSq/nSq*row*SQ22)
             elem(i)%x(3) = lSq/nSq * row     * SQ22
             elem(i)%x(4) = elem(i)%x(1)
 
@@ -392,13 +392,13 @@ program pipeMeshNek
       elem(i)%group = 1
 
       elem(i)%curvedEdge(:) = .FALSE.
-!      elem(i)%curvedEdge(1) = .TRUE.
+      elem(i)%curvedEdge(1) = .TRUE.
       elem(i)%curvedEdge(3) = .TRUE.
-!      elem(i)%curvedEdge(5) = .TRUE.
+      elem(i)%curvedEdge(5) = .TRUE.
       elem(i)%curvedEdge(7) = .TRUE.
-!      elem(i)%curvedEdgeR(1) = -iR
+      elem(i)%curvedEdgeR(1) = -iR
       elem(i)%curvedEdgeR(3) = oR
-!      elem(i)%curvedEdgeR(5) = -iR
+      elem(i)%curvedEdgeR(5) = -iR
       elem(i)%curvedEdgeR(7) = oR
 
       elem(i)%bcType(:) = 'E'
@@ -465,13 +465,13 @@ program pipeMeshNek
       elem(i)%group = 1
 
       elem(i)%curvedEdge(:) = .FALSE.
-!      elem(i)%curvedEdge(1) = .TRUE.
+      elem(i)%curvedEdge(1) = .TRUE.
       elem(i)%curvedEdge(3) = .TRUE.
-!      elem(i)%curvedEdge(5) = .TRUE.
+      elem(i)%curvedEdge(5) = .TRUE.
       elem(i)%curvedEdge(7) = .TRUE.
-!      elem(i)%curvedEdgeR(1) = -iR
+      elem(i)%curvedEdgeR(1) = -iR
       elem(i)%curvedEdgeR(3) = oR
-!      elem(i)%curvedEdgeR(5) = -iR
+      elem(i)%curvedEdgeR(5) = -iR
       elem(i)%curvedEdgeR(7) = oR
 
       elem(i)%bcType(:) = 'E'
@@ -915,7 +915,7 @@ contains
       WRITE(fid, '(a)') '         118  PARAMETERS FOLLOW'
       WRITE(fid, '(a)') '   1.00000     P001: DENSITY'
       if ( debugFlag ) then
-         WRITE(fid, '(a)') '  -100.        P002: VISCOS'
+         WRITE(fid, '(a)') '  -10.         P002: VISCOS'
       else
          WRITE(fid, '(a)') '  -3000.       P002: VISCOS'
       endif
@@ -928,7 +928,7 @@ contains
       WRITE(fid, '(a)') '   0.00000     P009:'
       WRITE(fid, '(a)') '   0.00000     P010: FINTIME'
       if ( debugFlag ) then
-         WRITE(fid, '(a)') '   8           P011: NSTEPS'
+         WRITE(fid, '(a)') '   3           P011: NSTEPS'
       else
          WRITE(fid, '(a)') '   40003       P011: NSTEPS'
       endif
