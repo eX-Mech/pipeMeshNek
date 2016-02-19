@@ -1,0 +1,29 @@
+0.5    # R   = pipe radius
+1      # L   = pipe length
+#
+16     # nR  = number of elements on the radius (has to be > nTh/8)
+15.    # rP0 = radius "penalization", inner part
+1.9    # rP1 = radius "penalization", outer part
+14     # nL  = number of elements along the pipe
+64     # nTh = number of circular sweeps (has to be >= 8 and a power of 2)
+#
+0.95   # rR  = element ratio along the radius
+1.     # rL  = element ratio along the pipe
+#
+.f.    # DEBUG
+
+
+!==============================================================================
+! geometry definitions
+!
+! (X) : border number
+!
+!      ____________________________L_(2)_______________________________
+!      |                                                               |
+!      |                                                               |
+!      R (1)                                                           | (3)
+!      |                                                               |
+!  __ .| __ . __ . __ . __ . __ . __ . __ . __ . __ . __ . __ . __ . __| . __ 
+!    (0,0,0)            axis of symmetry (4)
+!
+!==============================================================================
