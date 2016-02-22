@@ -1191,21 +1191,28 @@ contains
       IF ( nEl < 1e3 ) THEN
 
          DO j = 1, 6 ! cycle on the six faces
-            WRITE(fid, '(1x,a2,1x,i3,i3,f10.1,4(f14.5))') &
+            WRITE(fid, '(1x,a2,1x,i3,i3,5(g14.6))') &
                elem%bcType(j), elem%num, j, elem%bcParameters(j,:)
          ENDDO
 
       ELSEIF ( nEl < 1e5 ) THEN
 
          DO j = 1, 6 ! cycle on the six faces
-            WRITE(fid, '(1x,a2,1x,i5,i1,f10.1,4(f14.5))') &
+            WRITE(fid, '(1x,a2,1x,i5,i1,5(g14.6))') &
                elem%bcType(j), elem%num, j, elem%bcParameters(j,:)
+         ENDDO
+
+      ELSEIF ( nEl < 1e6 ) THEN
+
+         DO j = 1, 6 ! cycle on the six faces
+            WRITE(fid, '(1x,a2,1x,i6,5(g14.6))') &
+               elem%bcType(j), elem%num, elem%bcParameters(j,:)
          ENDDO
 
       ELSE
 
          DO j = 1, 6 ! cycle on the six faces
-            WRITE(fid, '(1x,a2,1x,i10,i1,f10.1,4(f14.5))') &
+            WRITE(fid, '(1x,a2,1x,i11,i1,5(g18.11))') &
                elem%bcType(j), elem%num, j, elem%bcParameters(j,:)
          ENDDO
 
