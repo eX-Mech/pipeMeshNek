@@ -662,7 +662,7 @@ program pipeMeshNek
         deltaR = MIN(deltaR, R-SQRT(xTmp3**2 + yTmp3**2))
       ENDDO
    ENDDO
-   WRITE(*,*) 'deltaR', deltaR
+   WRITE(*,*) 'deltaR Plus', deltaR*reTau/R
 
    !
    ! "mirror" the first 1/4 face on the other quarters
