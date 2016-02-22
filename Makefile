@@ -21,7 +21,7 @@ OBJS =
 
 pipeMeshNek:     pipeMeshNek.o  $(OBJS)
 	$(LNK) $(OPT) pipeMeshNek.o  $(OBJS) \
-                 -o ~/BTSync/Software/bin/pipeMeshNek
+                 -o pipeMeshNek
 
 ############################################################
 # Objects generation
