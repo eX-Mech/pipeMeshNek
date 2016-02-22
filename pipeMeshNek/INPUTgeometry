@@ -10,7 +10,7 @@
 0.95     # rR  = element ratio along the radius
 1.    # rL  = element ratio along the pipe
 #
-8      # nPolynom = Polynomial degree
+7      # nPolynom = Polynomial degree, i.e. lx1-1 !!
 180.   # reTau = Friction-Reynolds Number (Re_tau)
 #
 .f.    # DEBUG
