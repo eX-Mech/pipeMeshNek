@@ -1,16 +1,16 @@
 0.5    # R   = pipe radius
 1      # L   = pipe length
 #
-10      # nR  = number of elements on the radius (has to be > nTh/8)
+3      # nR  = number of elements on the radius (has to be > nTh/8)
 15.    # rP0 = radius "penalization", inner part
 1.9    # rP1 = radius "penalization", outer part
-1      # nL  = number of elements along the pipe
-32     # nTh = number of circular sweeps (has to be >= 8 and a power of 2)
+10     # nL  = number of elements along the pipe
+16     # nTh = number of circular sweeps (has to be >= 8 and a power of 2)
 #
-.8      # rR  = element ratio along the radius
-1.     # rL  = element ratio along the pipe
+.8     # rR  = element ratio along the radius
+1     # rL  = element ratio along the pipe
 #
-7      # nPolynom = Polynomial degree, i.e. lx1-1 !!
+3      # nPolynom = Polynomial degree, i.e. lx1-1 !!
 180.   # reTau = Friction-Reynolds Number (Re_tau)
 #
 .t.    # DEBUG

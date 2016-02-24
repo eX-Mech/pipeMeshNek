@@ -642,32 +642,44 @@ program pipeMeshNek
    ENDDO
    !
    ! add "Wall" boundary condition on the external elements
-   !
-   DO j = nFpp4-nTh/4+1, nFpp4
-
-      elem(j)%bcType(3) = 'W'
-
-   ENDDO
-
-   
+   ! &
    ! calculate a few grid measures in wall-units
    ! Cf. mesh description in [El Khoury 13]
    ! delta-r^+ : distance between (pipe) wall and outmost gridpoint
    ! delta-R^+ : min and max
    ! delta-R^Theta+ : min and max
    ! delta-Z^+ : min and max
-
+   
    ! OBS: accounts (only) for linear (!) element deformation!
    ! BUT the curved mesh faces are concentric for the outer element-rings!
    ! --> should be correct
 
-   DO j = 1, nFpp4
-   ! Iterate over all GLL-Nodes
+   DO j = nFpp4-nTh/4+1, nFpp4
+
+      elem(j)%bcType(3) = 'W'
+
+      DO k = 2, nPolynom+1
+        xTmp1 = elem(j)%x(3) + (1.+xGridNodes(k))*.5*(elem(j)%x(4)-elem(j)%x(3))
+        yTmp1 = elem(j)%y(3) + (1.+xGridNodes(k))*.5*(elem(j)%y(4)-elem(j)%y(3))
+
+        xTmp2 = elem(j)%x(3) + (1.+xGridNodes(k-1))*.5*(elem(j)%x(4)-elem(j)%x(3))
+        yTmp2 = elem(j)%y(3) + (1.+xGridNodes(k-1))*.5*(elem(j)%y(4)-elem(j)%y(3))
+        
+        deltaRThmin = min(deltaRThmin, &
+          R*ABS(DATAN(yTmp1/xTmp1) - DATAN(yTmp2/xTmp2)))
+        deltaRThmax = max(deltaRThmax, &
+          R*ABS(DATAN(yTmp1/xTmp1) - DATAN(yTmp2/xTmp2)))
+      ENDDO
+   ENDDO
+
+
+   ! Iterate over all GLL-Nodes (of interior elements)
+   ! (Otherwise, delta-r-max would immediately be on the outer ring)
+   DO j = 1, nFpp4-nTh/4
       DO k = 2, nPolynom+1
         DO m = 2, nPolynom+1
-
-   ! xTmp1 and xTmp2, respectively, 
-   ! correspond to temporary points G and F in (GeoGebra-file) sketch.ggb
+        ! xTmp1 and xTmp2, respectively, 
+        ! correspond to temporary points G and F in (GeoGebra-file) sketch.ggb
 
           xTmp1 = elem(j)%x(1) + (1.+xGridNodes(k))*.5*(elem(j)%x(4)-elem(j)%x(1))
           yTmp1 = elem(j)%y(1) + (1.+xGridNodes(k))*.5*(elem(j)%y(4)-elem(j)%y(1))
@@ -682,6 +694,7 @@ program pipeMeshNek
           deltaRmax = max(deltaRmax,SQRT( &
           ((xGridNodes(m)-xGridNodes(m-1))*.5*(xTmp2-xTmp1))**2 + &
            ((xGridNodes(m)-xGridNodes(m-1))*.5*(yTmp2-yTmp1))**2))
+          
 
           ! Minimize/Maximize along both dimensions ..
           xTmp1 = elem(j)%x(1) + (1.+xGridNodes(k))*.5*(elem(j)%x(2)-elem(j)%x(1))
@@ -701,22 +714,21 @@ program pipeMeshNek
           !scratch below
           !deltaRmin = min(deltaRmin,R-SQRT(xTmp2**2 + yTmp2**2))
 
-          xTmp3 = xTmp1 + (1.+xGridNodes(k))*.5*(xTmp2-xTmp1)
-          yTmp3 = yTmp1 + (1.+xGridNodes(k))*.5*(yTmp2-yTmp1)
 
         ENDDO
       ENDDO
    ENDDO
 
    j = nFpp4-nTh/4+1
-   xTmp2 = elem(j)%x(2) + (1.+xGridNodes(nPolynom))*.5*(elem(j)%x(3)-elem(j)%x(2))
-   yTmp2 = elem(j)%y(2) + (1.+xGridNodes(nPolynom))*.5*(elem(j)%y(3)-elem(j)%y(2))
-   deltaR = R-SQRT(xTmp2**2 + yTmp2**2)
+   xTmp1 = elem(j)%x(1) + (1.+xGridNodes(nPolynom))*.5*(elem(j)%x(4)-elem(j)%x(1))
+   yTmp1 = elem(j)%y(1) + (1.+xGridNodes(nPolynom))*.5*(elem(j)%y(4)-elem(j)%y(1))
+   deltaR = R-SQRT(xTmp1**2 + yTmp1**2)
    WRITE(*,*) 'delta r Plus (outmost grid-point)', deltaR*reTau/R
    WRITE(*,*) 'delta r Plus min', deltaRmin*reTau/R
-
    ! squareroot of two for diagonals
    WRITE(*,*) 'delta r Plus max', SQRT(2d0)*deltaRmax*reTau/R 
+   WRITE(*,*) 'delta R Theta Plus min', deltaRThmin*reTau/R
+   WRITE(*,*) 'delta R Theta Plus max', deltaRThmax*reTau/R 
 
    !
    ! "mirror" the first 1/4 face on the other quarters
@@ -789,7 +801,12 @@ program pipeMeshNek
 	 ! advance the face to the end of the pipe
    !
    de = rL * dL
+   deltaZmin = min(deltaZmin,de)
+   deltaZmax = max(deltaZmax,de)
    DO j = 1, nL-1
+
+      deltaZmin = min(deltaZmin,de)
+      deltaZmax = max(deltaZmax,de)
 
       CALL advanceFace (1 + nFpp*(j-1), nFpp*j, de, elem)
 
@@ -817,6 +834,11 @@ program pipeMeshNek
       elem(j-nPp+nFpp)%bcParameters(5,1) = j
 
    ENDDO
+
+   WRITE(*,*) 'delta z Plus min', 0.5*(xGridNodes(nPolynom+1)-xGridNodes(nPolynom)) &
+     *deltaZmin*reTau/R
+   WRITE(*,*) 'delta z Plus max', 0.5*(xGridNodes(nPolynom/2+2)-xGridNodes(nPolynom/2+1)) &
+     *deltaZmax*reTau/R 
 
 
 !==============================================================================
@@ -1332,7 +1354,10 @@ contains
 
     REAL ( KIND = 8 ) x(n+1)
 
-    if ( n == 2 ) then
+    if ( n == 1 ) then
+      x(1) =  - 1.0D+00
+      x(2) =    1.0D+00
+    else if ( n == 2 ) then
 
       x(1) =  - 1.0D+00
       x(2) =    0.0D+00
