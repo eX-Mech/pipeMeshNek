@@ -64,10 +64,12 @@ program pipeMeshNek
    INTEGER        :: nPolynom ! Polynomial degree (-> nPolynom+1 Grid points)
    REAL(KIND=8), DIMENSION(20) :: xGridNodes ! (Local) Lobatto node-positions
    REAL(KIND=8)   :: reTau ! Friction-Reynolds Number (Re_tau)
-   REAL(KIND=8)   :: deltaR ! wall-distance of the outmost gridpoint
+   REAL(KIND=8)   :: deltaR, deltaRmin, deltaRmax ! wall-unit measures
+   REAL(KIND=8)   :: deltaZmin, deltaZmax, deltaRThmin, deltaRThmax ! 
+   INTEGER        :: np1, np10 ! number of gridPoints below 1 (10) wall units
    ! miscellaneous
    LOGICAL        :: debugFlag
-   INTEGER        :: i, j, k, row, col
+   INTEGER        :: i, j, k, m, row, col
    REAL(KIND=8)   :: xTmp1, xTmp2, xTmp3
    REAL(KIND=8)   :: yTmp1, yTmp2, yTmp3
    INTEGER        :: fid1 = 100, fid2 = 101
@@ -172,10 +174,13 @@ program pipeMeshNek
    ENDDO
    dL = L/sR
 
-
    CALL lobatto_set(nPolynom, xGridNodes)
-   deltaR = R
-
+   deltaRmin = R
+   deltaRThmin = R*alpha
+   deltaZmin = L
+   deltaRmax = 0
+   deltaRThmax = 0
+   deltaZmax = 0
 
    ALLOCATE( elem(nEl) )
 
@@ -641,28 +646,77 @@ program pipeMeshNek
    DO j = nFpp4-nTh/4+1, nFpp4
 
       elem(j)%bcType(3) = 'W'
+
+   ENDDO
+
    
-   ! calculate smallest distance between wall and outmost gridpoint: delta-r^+
-   ! account (only) for linear (!) element deformation in calculation of the
-   ! possible outmost gridpoint(s). 
-   ! But take curvature of outer wall (= pipe radius) into account. 
-   ! -> worst-case-error: overestimating delta-r^+, when "inner" edge is curved
+   ! calculate a few grid measures in wall-units
+   ! Cf. mesh description in [El Khoury 13]
+   ! delta-r^+ : distance between (pipe) wall and outmost gridpoint
+   ! delta-R^+ : min and max
+   ! delta-R^Theta+ : min and max
+   ! delta-Z^+ : min and max
 
-   ! Temporary points G and F in (GeoGebra) sketch.ggb
-   xTmp1 = elem(j)%x(1) + (1.+xGridNodes(nPolynom))*.5*(elem(j)%x(4)-elem(j)%x(1))
-   yTmp1 = elem(j)%y(1) + (1.+xGridNodes(nPolynom))*.5*(elem(j)%y(4)-elem(j)%y(1))
+   ! OBS: accounts (only) for linear (!) element deformation!
+   ! BUT the curved mesh faces are concentric for the outer element-rings!
+   ! --> should be correct
 
-   xTmp2 = elem(j)%x(2) + (1.+xGridNodes(nPolynom))*.5*(elem(j)%x(3)-elem(j)%x(2))
-   yTmp2 = elem(j)%y(2) + (1.+xGridNodes(nPolynom))*.5*(elem(j)%y(3)-elem(j)%y(2))
+   DO j = 1, nFpp4
+   ! Iterate over all GLL-Nodes
+      DO k = 2, nPolynom+1
+        DO m = 2, nPolynom+1
 
-      DO k = 1, nPolynom+1
-        xTmp3 = xTmp1 + (1.+xGridNodes(k))*.5*(xTmp2-xTmp1)
-        yTmp3 = yTmp1 + (1.+xGridNodes(k))*.5*(yTmp2-yTmp1)
+   ! xTmp1 and xTmp2, respectively, 
+   ! correspond to temporary points G and F in (GeoGebra-file) sketch.ggb
 
-        deltaR = MIN(deltaR, R-SQRT(xTmp3**2 + yTmp3**2))
+          xTmp1 = elem(j)%x(1) + (1.+xGridNodes(k))*.5*(elem(j)%x(4)-elem(j)%x(1))
+          yTmp1 = elem(j)%y(1) + (1.+xGridNodes(k))*.5*(elem(j)%y(4)-elem(j)%y(1))
+
+          xTmp2 = elem(j)%x(2) + (1.+xGridNodes(k))*.5*(elem(j)%x(3)-elem(j)%x(2))
+          yTmp2 = elem(j)%y(2) + (1.+xGridNodes(k))*.5*(elem(j)%y(3)-elem(j)%y(2))
+
+          deltaRmin = min(deltaRmin,SQRT( &
+          ((xGridNodes(m)-xGridNodes(m-1))*.5*(xTmp2-xTmp1))**2 + &
+           ((xGridNodes(m)-xGridNodes(m-1))*.5*(yTmp2-yTmp1))**2))
+
+          deltaRmax = max(deltaRmax,SQRT( &
+          ((xGridNodes(m)-xGridNodes(m-1))*.5*(xTmp2-xTmp1))**2 + &
+           ((xGridNodes(m)-xGridNodes(m-1))*.5*(yTmp2-yTmp1))**2))
+
+          ! Minimize/Maximize along both dimensions ..
+          xTmp1 = elem(j)%x(1) + (1.+xGridNodes(k))*.5*(elem(j)%x(2)-elem(j)%x(1))
+          yTmp1 = elem(j)%y(1) + (1.+xGridNodes(k))*.5*(elem(j)%y(2)-elem(j)%y(1))
+
+          xTmp2 = elem(j)%x(4) + (1.+xGridNodes(k))*.5*(elem(j)%x(3)-elem(j)%x(4))
+          yTmp2 = elem(j)%y(4) + (1.+xGridNodes(k))*.5*(elem(j)%y(3)-elem(j)%y(4))
+
+          deltaRmin = min(deltaRmin,SQRT( &
+          ((xGridNodes(m)-xGridNodes(m-1))*.5*(xTmp2-xTmp1))**2 + &
+           ((xGridNodes(m)-xGridNodes(m-1))*.5*(yTmp2-yTmp1))**2))
+
+          deltaRmax = max(deltaRmax,SQRT( &
+          ((xGridNodes(m)-xGridNodes(m-1))*.5*(xTmp2-xTmp1))**2 + &
+           ((xGridNodes(m)-xGridNodes(m-1))*.5*(yTmp2-yTmp1))**2))
+
+          !scratch below
+          !deltaRmin = min(deltaRmin,R-SQRT(xTmp2**2 + yTmp2**2))
+
+          xTmp3 = xTmp1 + (1.+xGridNodes(k))*.5*(xTmp2-xTmp1)
+          yTmp3 = yTmp1 + (1.+xGridNodes(k))*.5*(yTmp2-yTmp1)
+
+        ENDDO
       ENDDO
    ENDDO
-   WRITE(*,*) 'deltaR Plus', deltaR*reTau/R
+
+   j = nFpp4-nTh/4+1
+   xTmp2 = elem(j)%x(2) + (1.+xGridNodes(nPolynom))*.5*(elem(j)%x(3)-elem(j)%x(2))
+   yTmp2 = elem(j)%y(2) + (1.+xGridNodes(nPolynom))*.5*(elem(j)%y(3)-elem(j)%y(2))
+   deltaR = R-SQRT(xTmp2**2 + yTmp2**2)
+   WRITE(*,*) 'delta r Plus (outmost grid-point)', deltaR*reTau/R
+   WRITE(*,*) 'delta r Plus min', deltaRmin*reTau/R
+
+   ! squareroot of two for diagonals
+   WRITE(*,*) 'delta r Plus max', SQRT(2d0)*deltaRmax*reTau/R 
 
    !
    ! "mirror" the first 1/4 face on the other quarters
@@ -874,7 +928,7 @@ program pipeMeshNek
       OPEN(UNIT=fid2, FILE='plotElements', ACTION='write')
       DO i = 1, nEl
          DO j = 1, 8
-            WRITE(fid2, *) elem(i)%x(j), elem(i)%y(j), elem(i)%z(j)
+            WRITE(fid2, *) elem(i)%x(j), elem(i)%y(j), elem(i)%z(j), i
          ENDDO
       ENDDO
       CLOSE(fid2)

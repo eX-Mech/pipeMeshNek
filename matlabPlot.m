@@ -40,6 +40,9 @@ for i = 1:8:nVe
    plot(r(i+2,2), r(i+2,1), '.k')
    plot(r(i+3,2), r(i+3,1), '.k')
 
+   elLoc = 0.25*(r(i, [1:2]) + r(i+1, [1:2]) + r(i+2, [1:2]) + r(i+3, [1:2]));
+   text(elLoc(2),elLoc(1),num2str(r(i,4))) % Element number
+
 end
 grid on
 axis equal
