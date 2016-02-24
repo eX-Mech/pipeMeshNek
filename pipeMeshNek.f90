@@ -64,14 +64,14 @@ program pipeMeshNek
    INTEGER        :: nPolynom ! Polynomial degree (-> nPolynom+1 Grid points)
    REAL(KIND=8), DIMENSION(20) :: xGridNodes ! (Local) Lobatto node-positions
    REAL(KIND=8)   :: reTau ! Friction-Reynolds Number (Re_tau)
-   REAL(KIND=8)   :: deltaR, deltaRmin, deltaRmax ! wall-unit measures
+   REAL(KIND=8)   :: deltaR, deltaRmin, deltaRmax, thMin, thMax ! wall-unit mesh-quality measures
    REAL(KIND=8)   :: deltaZmin, deltaZmax, deltaRThmin, deltaRThmax ! 
    INTEGER        :: np1, np10 ! number of gridPoints below 1 (10) wall units
    ! miscellaneous
    LOGICAL        :: debugFlag
    INTEGER        :: i, j, k, m, row, col
-   REAL(KIND=8)   :: xTmp1, xTmp2, xTmp3
-   REAL(KIND=8)   :: yTmp1, yTmp2, yTmp3
+   REAL(KIND=8)   :: xTmp1, xTmp2
+   REAL(KIND=8)   :: yTmp1, yTmp2
    INTEGER        :: fid1 = 100, fid2 = 101
    LOGICAL        :: existFlag
    CHARACTER(LEN=24) :: nameRea
@@ -175,12 +175,17 @@ program pipeMeshNek
    dL = L/sR
 
    CALL lobatto_set(nPolynom, xGridNodes)
+   np1=-1 ! outmost grid point in counting algorithm is wall!
+   np10=-1 ! outmost grid point in counting algorithm is wall!
+   deltaR = 0
    deltaRmin = R
    deltaRThmin = R*alpha
    deltaZmin = L
+   thMin = PI/2.
    deltaRmax = 0
    deltaRThmax = 0
    deltaZmax = 0
+   thMax = PI/2.
 
    ALLOCATE( elem(nEl) )
 
@@ -642,40 +647,74 @@ program pipeMeshNek
    ENDDO
    !
    ! add "Wall" boundary condition on the external elements
-   ! &
+   !
+   DO j = nFpp4-nTh/4+1, nFpp4
+
+      elem(j)%bcType(3) = 'W'
+   ENDDO
+
    ! calculate a few grid measures in wall-units
    ! Cf. mesh description in [El Khoury 13]
    ! delta-r^+ : distance between (pipe) wall and outmost gridpoint
    ! delta-R^+ : min and max
    ! delta-R^Theta+ : min and max
    ! delta-Z^+ : min and max
+   ! And: element corner-angle (in degrees)
+   ! theta : min and max
    
    ! OBS: accounts (only) for linear (!) element deformation!
    ! BUT the curved mesh faces are concentric for the outer element-rings!
    ! --> should be correct
 
-   DO j = nFpp4-nTh/4+1, nFpp4
+   ! Loop over all elements
+   DO j = 1, nFpp4
 
-      elem(j)%bcType(3) = 'W'
+     ! Minimal and maximal element-corner angle
+     xTmp1 = (elem(j)%x(4)-elem(j)%x(1))
+     yTmp1 = (elem(j)%y(4)-elem(j)%y(1))
 
-      DO k = 2, nPolynom+1
-        xTmp1 = elem(j)%x(3) + (1.+xGridNodes(k))*.5*(elem(j)%x(4)-elem(j)%x(3))
-        yTmp1 = elem(j)%y(3) + (1.+xGridNodes(k))*.5*(elem(j)%y(4)-elem(j)%y(3))
+     xTmp2 = (elem(j)%x(2)-elem(j)%x(1))
+     yTmp2 = (elem(j)%y(2)-elem(j)%y(1))
 
-        xTmp2 = elem(j)%x(3) + (1.+xGridNodes(k-1))*.5*(elem(j)%x(4)-elem(j)%x(3))
-        yTmp2 = elem(j)%y(3) + (1.+xGridNodes(k-1))*.5*(elem(j)%y(4)-elem(j)%y(3))
-        
-        deltaRThmin = min(deltaRThmin, &
-          R*ABS(DATAN(yTmp1/xTmp1) - DATAN(yTmp2/xTmp2)))
-        deltaRThmax = max(deltaRThmax, &
-          R*ABS(DATAN(yTmp1/xTmp1) - DATAN(yTmp2/xTmp2)))
-      ENDDO
-   ENDDO
+     thMin = min(thMin, DACOS((xTmp1*xTmp2 + yTmp1*yTmp2)/ &
+       SQRT((xTmp1**2+yTmp1**2)*(xTmp2**2+yTmp2**2))))
+
+     thMax = max(thMax, DACOS((xTmp1*xTmp2 + yTmp1*yTmp2)/ &
+       SQRT((xTmp1**2+yTmp1**2)*(xTmp2**2+yTmp2**2))))
+
+     xTmp1 = (elem(j)%x(3)-elem(j)%x(2))
+     yTmp1 = (elem(j)%y(3)-elem(j)%y(2))
+
+     thMin = min(thMin, PI-DACOS((xTmp1*xTmp2 + yTmp1*yTmp2)/ &
+       SQRT((xTmp1**2+yTmp1**2)*(xTmp2**2+yTmp2**2))))
+
+     thMax = max(thMax, PI-DACOS((xTmp1*xTmp2 + yTmp1*yTmp2)/ &
+       SQRT((xTmp1**2+yTmp1**2)*(xTmp2**2+yTmp2**2))))
+
+     xTmp2 = (elem(j)%x(4)-elem(j)%x(3))
+     yTmp2 = (elem(j)%y(4)-elem(j)%y(3))
+
+     thMin = min(thMin, PI-DACOS((xTmp1*xTmp2 + yTmp1*yTmp2)/ &
+       SQRT((xTmp1**2+yTmp1**2)*(xTmp2**2+yTmp2**2))))
+
+     thMax = max(thMax, PI-DACOS((xTmp1*xTmp2 + yTmp1*yTmp2)/ &
+       SQRT((xTmp1**2+yTmp1**2)*(xTmp2**2+yTmp2**2))))
+
+     xTmp1 = (elem(j)%x(1)-elem(j)%x(4))
+     yTmp1 = (elem(j)%y(1)-elem(j)%y(4))
+
+     thMin = min(thMin, DACOS((xTmp1*xTmp2 + yTmp1*yTmp2)/ & 
+       SQRT((xTmp1**2+yTmp1**2)*(xTmp2**2+yTmp2**2))))
+
+     thMax = max(thMax, DACOS((xTmp1*xTmp2 + yTmp1*yTmp2)/ &
+       SQRT((xTmp1**2+yTmp1**2)*(xTmp2**2+yTmp2**2))))
 
 
-   ! Iterate over all GLL-Nodes (of interior elements)
-   ! (Otherwise, delta-r-max would immediately be on the outer ring)
-   DO j = 1, nFpp4-nTh/4
+    ! Iterate over all GLL-Nodes (only of interior elements)
+    ! (Otherwise, delta-r-max would immediately be on the outer ring)
+      IF (J .GT. nFpp4-nTh/4) THEN
+        CYCLE
+      ENDIF
       DO k = 2, nPolynom+1
         DO m = 2, nPolynom+1
         ! xTmp1 and xTmp2, respectively, 
@@ -711,24 +750,64 @@ program pipeMeshNek
           ((xGridNodes(m)-xGridNodes(m-1))*.5*(xTmp2-xTmp1))**2 + &
            ((xGridNodes(m)-xGridNodes(m-1))*.5*(yTmp2-yTmp1))**2))
 
-          !scratch below
-          !deltaRmin = min(deltaRmin,R-SQRT(xTmp2**2 + yTmp2**2))
-
-
         ENDDO
       ENDDO
    ENDDO
 
+   ! Iterate one elements-row inwards from wall
    j = nFpp4-nTh/4+1
+   DO WHILE ( (deltaR*reTau/R) .LT. 10. )
+      ! NOTE: that the element vertices are double-counted (intentionally)!
+      DO k = 1, nPolynom+1
+        xTmp1 = elem(j)%x(4) + (1.+xGridNodes(k))*.5*(elem(j)%x(1)-elem(j)%x(4))
+        yTmp1 = elem(j)%y(4) + (1.+xGridNodes(k))*.5*(elem(j)%y(1)-elem(j)%y(4))
+        deltaR = R - SQRT(xTmp1**2 + yTmp1**2)
+
+        IF ( (deltaR*reTau/R) .LT. 10. ) THEN
+          nP10 = nP10 +1
+          IF ( (deltaR*reTau/R) .LT. 1. ) THEN
+            nP1 = nP1 +1
+          ENDIF
+        ENDIF
+      ENDDO
+      j = INT(elem(j)%bcParameters(1,1))
+
+      ! For "interior face" BC-Type ('E') the connectivity seems to be not guaranteed
+      IF (nP10 .GT. 1000) THEN
+        WRITE(*,*) 'pipeMeshNek seems stuck while counting grid points'
+        WRITE(*,*) 'STOP.'
+        STOP
+      ENDIF
+   ENDDO
+
+
+   j = nFpp4-nTh/4+2
    xTmp1 = elem(j)%x(1) + (1.+xGridNodes(nPolynom))*.5*(elem(j)%x(4)-elem(j)%x(1))
    yTmp1 = elem(j)%y(1) + (1.+xGridNodes(nPolynom))*.5*(elem(j)%y(4)-elem(j)%y(1))
    deltaR = R-SQRT(xTmp1**2 + yTmp1**2)
-   WRITE(*,*) 'delta r Plus (outmost grid-point)', deltaR*reTau/R
-   WRITE(*,*) 'delta r Plus min', deltaRmin*reTau/R
+
+   DO k = 2, nPolynom+1
+   xTmp1 = elem(j)%x(3) + (1.+xGridNodes(k))*.5*(elem(j)%x(4)-elem(j)%x(3))
+   yTmp1 = elem(j)%y(3) + (1.+xGridNodes(k))*.5*(elem(j)%y(4)-elem(j)%y(3))
+
+   xTmp2 = elem(j)%x(3) + (1.+xGridNodes(k-1))*.5*(elem(j)%x(4)-elem(j)%x(3))
+   yTmp2 = elem(j)%y(3) + (1.+xGridNodes(k-1))*.5*(elem(j)%y(4)-elem(j)%y(3))
+
+   deltaRThmin = min(deltaRThmin, &
+     R*ABS(DATAN(yTmp1/xTmp1) - DATAN(yTmp2/xTmp2)))
+   deltaRThmax = max(deltaRThmax, &
+     R*ABS(DATAN(yTmp1/xTmp1) - DATAN(yTmp2/xTmp2)))
+   ENDDO
+   WRITE(*,*) 'delta r Plus (outmost grid) ', deltaR*reTau/R
+   WRITE(*,*) '# grid points < delta r+=1  ', np1
+   WRITE(*,*) '# grid points < delta r+=10 ', np10
+   WRITE(*,*) 'Theta min [°]               ', thMin/PI*180.
+   WRITE(*,*) 'Theta max [°]               ', thMax/PI*180.
+   WRITE(*,*) 'delta r Plus min            ', deltaRmin*reTau/R
    ! squareroot of two for diagonals
-   WRITE(*,*) 'delta r Plus max', SQRT(2d0)*deltaRmax*reTau/R 
-   WRITE(*,*) 'delta R Theta Plus min', deltaRThmin*reTau/R
-   WRITE(*,*) 'delta R Theta Plus max', deltaRThmax*reTau/R 
+   WRITE(*,*) 'delta r Plus max            ', SQRT(2d0)*deltaRmax*reTau/R 
+   WRITE(*,*) 'delta R Theta Plus min      ', deltaRThmin*reTau/R
+   WRITE(*,*) 'delta R Theta Plus max      ', deltaRThmax*reTau/R 
 
    !
    ! "mirror" the first 1/4 face on the other quarters
@@ -835,9 +914,9 @@ program pipeMeshNek
 
    ENDDO
 
-   WRITE(*,*) 'delta z Plus min', 0.5*(xGridNodes(nPolynom+1)-xGridNodes(nPolynom)) &
+   WRITE(*,*) 'delta z Plus min            ', 0.5*(xGridNodes(nPolynom+1)-xGridNodes(nPolynom)) &
      *deltaZmin*reTau/R
-   WRITE(*,*) 'delta z Plus max', 0.5*(xGridNodes(nPolynom/2+2)-xGridNodes(nPolynom/2+1)) &
+   WRITE(*,*) 'delta z Plus max            ', 0.5*(xGridNodes(nPolynom/2+2)-xGridNodes(nPolynom/2+1)) &
      *deltaZmax*reTau/R 
 
 
