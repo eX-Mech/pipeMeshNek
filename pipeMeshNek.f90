@@ -906,10 +906,10 @@ program pipeMeshNek
    DO j = i-nFpp+1, i
 
       ! write last face
-      elem(j)%bcType(6) = 'P'
+      elem(j)%bcType(6) = 'P' ! O
       elem(j)%bcParameters(6,1) = j-nPp+nFpp
       ! and correct periodicity on the first face
-      elem(j-nPp+nFpp)%bcType(5) = 'P'
+      elem(j-nPp+nFpp)%bcType(5) = 'P' ! v
       elem(j-nPp+nFpp)%bcParameters(5,1) = j
 
    ENDDO
@@ -1112,8 +1112,8 @@ contains
       WRITE(fid, '(a)') '   0.00000     P004: : : GTHETA'
       WRITE(fid, '(a)') '   0.00000     P005: : : PGRADX'
       WRITE(fid, '(a)') '   0.00000     P006:'
-      WRITE(fid, '(a)') '   1.00000     P007: RHOCP'
-      WRITE(fid, '(a)') '   1.00000     P008: CONDUCT'
+      WRITE(fid, '(a)') '   0.00000     P007: RHOCP'
+      WRITE(fid, '(a)') '   0.00000     P008: CONDUCT'
       WRITE(fid, '(a)') '   0.00000     P009:'
       WRITE(fid, '(a)') '   0.00000     P010: FINTIME'
       if ( debugFlag ) then
@@ -1132,13 +1132,13 @@ contains
       WRITE(fid, '(a)') '   0.00000     P016: PSSOLVER: 0=default'
       WRITE(fid, '(a)') '   1.00000     P017:'
       WRITE(fid, '(a)') '  0.500000E-01 P018: GRID < 0 --> # cells on screen'
-      WRITE(fid, '(a)') '  -1.00000     P019: INTYPE'
-      WRITE(fid, '(a)') '   10.0000     P020: NORDER'
-      WRITE(fid, '(a)') '  0.100000E-08 P021: DIVERGENCE'
-      WRITE(fid, '(a)') '  0.100000E-08 P022: HELMHOLTZ'
+      WRITE(fid, '(a)') '   0.00000     P019: INTYPE'
+      WRITE(fid, '(a)') '   0.00000     P020: NORDER'
+      WRITE(fid, '(a)') '   0.1000E-08  P021: DIVERGENCE'
+      WRITE(fid, '(a)') '   0.1000E-08  P022: HELMHOLTZ'
       WRITE(fid, '(a)') '   0.00000     P023: NPSCAL'
-      WRITE(fid, '(a)') '  0.100000E-01 P024: TOLREL'
-      WRITE(fid, '(a)') '  0.100000E-01 P025: TOLABS'
+      WRITE(fid, '(a)') '   0.1000E-01  P024: TOLREL'
+      WRITE(fid, '(a)') '   0.1000E-01  P025: TOLABS'
       WRITE(fid, '(a)') '   1.00000     P026: COURANT/NTAU'
       WRITE(fid, '(a)') '   3.00000     P027: TORDER'
       WRITE(fid, '(a)') '   0.00000     P028: TORDER: mesh velocity (0: p28=p27)'
@@ -1167,9 +1167,9 @@ contains
       WRITE(fid, '(a)') '   0.00000     P051:'
       WRITE(fid, '(a)') '   0.00000     P052: IOHIS'
       WRITE(fid, '(a)') '   0.00000     P053:'
-      WRITE(fid, '(a)') '   0.00000     P054: fixed flow rate dir: |p54|=1,2,3=x,y,z'
-      WRITE(fid, '(a)') '   0.00000     P055: vol.flow rate (p54>0) or Ubar (p54<0)'
-      WRITE(fid, '(a)') '   1.00000     P056: : :'
+      WRITE(fid, '(a)') '  -1.00000     P054: fixed flow rate dir: |p54|=1,2,3=x,y,z'
+      WRITE(fid, '(a)') '   1.00000     P055: vol.flow rate (p54>0) or Ubar (p54<0)'
+      WRITE(fid, '(a)') '   0.00000     P056: : :'
       WRITE(fid, '(a)') '   0.00000     P057: : :'
       WRITE(fid, '(a)') '   0.00000     P058:'
       WRITE(fid, '(a)') '   0.00000     P059: !=0 --> full Jac. eval. for each el.'
@@ -1182,7 +1182,7 @@ contains
       WRITE(fid, '(a)') '   6.00000     P066: output : <0=ascii, else binary'
       WRITE(fid, '(a)') '   6.00000     P067: restart: <0=ascii, else binary'
       WRITE(fid, '(a)') '   20000       P068: iastep: freq for avg_all (0=iostep)'
-      WRITE(fid, '(a)') '   50000.0     P069: : :     frequency of srf dump'
+      WRITE(fid, '(a)') '   0.00000     P069: : :     frequency of srf dump'
       WRITE(fid, '(a)') '   0.00000     P070: : :'
       WRITE(fid, '(a)') '   0.00000     P071: : :'
       WRITE(fid, '(a)') '   0.00000     P072: : :'
@@ -1215,7 +1215,7 @@ contains
       WRITE(fid, '(a)') '   3.00000     P099: dealiasing: <0--> off/3--> old/4--> new'
       WRITE(fid, '(a)') '   0.00000     P100:'
       WRITE(fid, '(a)') '   0.00000     P101: Number of additional modes to filter'
-      WRITE(fid, '(a)') '   1.00000     P102: Dump out divergence at each time step'
+      WRITE(fid, '(a)') '   0.00000     P102: Dump out divergence at each time step'
       WRITE(fid, '(a)') '   0.01000     P103: weight of stabilizing filter (.01)'
       WRITE(fid, '(a)') '   0.00000     P104: : :'
       WRITE(fid, '(a)') '   0.00000     P105: : :'
