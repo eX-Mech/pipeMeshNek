@@ -72,7 +72,7 @@ program pipeMeshNek
    INTEGER        :: i, j, k, m, row, col
    REAL(KIND=8)   :: xTmp1, xTmp2
    REAL(KIND=8)   :: yTmp1, yTmp2
-   INTEGER        :: fid1 = 100, fid2 = 101
+   INTEGER        :: fid1 = 100, fid3d = 103, fid2d = 102
    LOGICAL        :: existFlag
    CHARACTER(LEN=24) :: nameRea
    REAL(KIND=8)   :: PI = 4d0*DATAN(1d0)
@@ -975,64 +975,92 @@ program pipeMeshNek
       WRITE(*,*) 'STOP.'
       STOP
    ELSE
-      OPEN(UNIT=fid2, FILE=trim(nameRea), STATUS='new', ACTION='write')
-      CALL initializeMeshFile(fid2, debugFlag)
+      OPEN(UNIT=fid3d, FILE=trim(nameRea), STATUS='new', ACTION='write')
+      CALL initializeMeshFile(fid3d, debugFlag)
+   ENDIF
+
+   WRITE(nameRea,'(a)') 'base2d.rea'
+
+   INQUIRE (FILE=trim(nameRea), EXIST=existFlag)
+   IF (existFlag) THEN
+      WRITE(*,*) '*************************************'
+      WRITE(*,*) '*** ERROR:                        ***'
+      WRITE(*,*) '*** File already present          ***'
+      WRITE(*,*) '*** ', trim(nameRea), '                      ***'
+      WRITE(*,*) '*************************************'
+      WRITE(*,*) 'STOP.'
+      STOP
+   ELSE
+      OPEN(UNIT=fid2d, FILE=trim(nameRea), STATUS='new', ACTION='write')
+      CALL initializeMeshFile(fid2d, debugFlag)
    ENDIF
 
 !==============================================================================
 ! write element data
 
-   WRITE(fid2, '(a)') '  ***** MESH DATA *****  6 lines are X,Y,Z;X,Y,Z. Columns corners 1-4;5-8'
-   WRITE(fid2, *)     nEl, ' 3 ', nEl, ' NEL,NDIM,NELV'
+   WRITE(fid3d, '(a)') '  ***** MESH DATA *****  6 lines are X,Y,Z;X,Y,Z. Columns corners 1-4;5-8'
+   WRITE(fid3d, *)     nEl, ' 3 ', nEl, ' NEL,NDIM,NELV'
+
+   WRITE(fid2d, '(a)') '  ***** MESH DATA ***** 1st line is X of corner 1,2,3,4. 2nd line is Y'
+   WRITE(fid2d, *)     nFpp, ' 2 ', nFpp, ' NEL,NDIM,NELV'
 
    DO i = 1, nEl
 
-      CALL writeElement ( fid2, elem(i) )
+      CALL writeElement ( fid3d, fid2d, elem(i), i .LE. nFpp )
 
    ENDDO
 
 !==============================================================================
 ! write curved side data
 
-   WRITE(fid2, '(1x,a28)') '***** CURVED SIDE DATA *****'
-   WRITE(fid2, '(2x,i10,1x,a52)') nCurvedEdges, 'Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE'
+   WRITE(fid3d, '(1x,a28)') '***** CURVED SIDE DATA *****'
+   WRITE(fid3d, '(2x,i10,1x,a52)') nCurvedEdges, 'Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE'
+
+   WRITE(fid2d, '(1x,a28)') '***** CURVED SIDE DATA *****'
+   WRITE(fid2d, '(2x,i10,1x,a52)') nCurvedEdges/(2*nL), 'Curved sides follow IEDGE,IEL,CURVE(I),I=1,5, CCURVE'
 
    DO i = 1, nEl
 
-      CALL writeCurvedEdges ( fid2, elem(i) )
+      CALL writeCurvedEdges ( fid3d, fid2d, elem(i), i .LE. nFpp  )
 
    ENDDO
 
 !==============================================================================
 ! write boundary conditions
 
-   WRITE(fid2, '(a)') '  ***** BOUNDARY CONDITIONS *****'
-   WRITE(fid2, '(a)') '  ***** FLUID BOUNDARY CONDITIONS *****'
+   WRITE(fid3d, '(a)') '  ***** BOUNDARY CONDITIONS *****'
+   WRITE(fid3d, '(a)') '  ***** FLUID BOUNDARY CONDITIONS *****'
+
+   WRITE(fid2d, '(a)') '  ***** BOUNDARY CONDITIONS *****'
+   WRITE(fid2d, '(a)') '  ***** FLUID BOUNDARY CONDITIONS *****'
 
    DO i = 1, nEl
 
-      CALL writeBoundaryConditions ( fid2, elem(i) )
+      CALL writeBoundaryConditions ( fid3d, fid2d, elem(i),  i .LE. nFpp )
 
    ENDDO
 
 !==============================================================================
 ! finalize nameRea
 
-   CALL finalizeMeshFile(fid2)
-   CLOSE(fid2)
+   CALL finalizeMeshFile(fid3d)
+   CLOSE(fid3d)
+
+   CALL finalizeMeshFile(fid2d)
+   CLOSE(fid2d)
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! debug: plot with Matlab
 
    IF ( debugFlag ) THEN
-      OPEN(UNIT=fid2, FILE='plotElements', ACTION='write')
+      OPEN(UNIT=fid3d, FILE='plotElements', ACTION='write')
       DO i = 1, nEl
          DO j = 1, 8
-            WRITE(fid2, *) elem(i)%x(j), elem(i)%y(j), elem(i)%z(j), i
+            WRITE(fid3d, *) elem(i)%x(j), elem(i)%y(j), elem(i)%z(j), i
          ENDDO
       ENDDO
-      CLOSE(fid2)
+      CLOSE(fid3d)
    ENDIF
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1100,13 +1128,16 @@ contains
 
       WRITE(fid, '(a)') ' ****** PARAMETERS *****'
       WRITE(fid, '(a)') '   2.6000      NEKTON VERSION'
-      WRITE(fid, '(a)') '   3 DIMENSIONAL RUN'
+
+      ! super dirty hack to save code-lines
+      WRITE(fid, '(a,i1, a)') '   ', mod(fid,100), ' DIMENSIONAL RUN'
+
       WRITE(fid, '(a)') '         118  PARAMETERS FOLLOW'
       WRITE(fid, '(a)') '   1.00000     P001: DENSITY'
       if ( debugFlag ) then
          WRITE(fid, '(a)') '  -10.         P002: VISCOS'
       else
-         WRITE(fid, '(a)') '  -3000.       P002: VISCOS'
+         WRITE(fid, '(a)') '  -5300.       P002: VISCOS'
       endif
       WRITE(fid, '(a)') '   0.00000     P003: : : BETAG'
       WRITE(fid, '(a)') '   0.00000     P004: : : GTHETA'
@@ -1131,11 +1162,11 @@ contains
       endif
       WRITE(fid, '(a)') '   0.00000     P016: PSSOLVER: 0=default'
       WRITE(fid, '(a)') '   1.00000     P017:'
-      WRITE(fid, '(a)') '  0.500000E-01 P018: GRID < 0 --> # cells on screen'
+      WRITE(fid, '(a)') '   0.00000     P018: GRID < 0 --> # cells on screen'
       WRITE(fid, '(a)') '   0.00000     P019: INTYPE'
       WRITE(fid, '(a)') '   0.00000     P020: NORDER'
-      WRITE(fid, '(a)') '   0.1000E-08  P021: DIVERGENCE'
-      WRITE(fid, '(a)') '   0.1000E-08  P022: HELMHOLTZ'
+      WRITE(fid, '(a)') '   0.100E-08   P021: DIVERGENCE'
+      WRITE(fid, '(a)') '   0.100E-08   P022: HELMHOLTZ'
       WRITE(fid, '(a)') '   0.00000     P023: NPSCAL'
       WRITE(fid, '(a)') '   0.1000E-01  P024: TOLREL'
       WRITE(fid, '(a)') '   0.1000E-01  P025: TOLABS'
@@ -1303,109 +1334,175 @@ contains
 
 !------------------------------------------------------------------------------
 
-   subroutine writeElement (fid, elem)
+   subroutine writeElement (fid3d, fid2d, elem, isFirstFace)
 
       IMPLICIT NONE
       ! input variables
-      INTEGER,       INTENT(IN) :: fid
+      INTEGER,       INTENT(IN) :: fid3d
+      INTEGER,       INTENT(IN) :: fid2d
       TYPE(element), INTENT(IN) :: elem
+      LOGICAL,       INTENT(IN) :: isFirstFace
       ! local variables
 
-      WRITE(fid, '(a18,1x,i10,a4,i3,a1,a11,i5)') &
-         '          ELEMENT', elem%num, ' [  ', 1, elem%groupL, ']    GROUP ', elem%group
+      WRITE(fid3d, '(a18,1x,i10,a4,i3,a1,a11,i5)') &
+         '            ELEMENT', elem%num, ' [  ', 1, elem%groupL, ']    GROUP ', elem%group
 
-      WRITE(fid, '(4(es14.6e2))') elem%x(1), elem%x(2), elem%x(3), elem%x(4)
-      WRITE(fid, '(4(es14.6e2))') elem%y(1), elem%y(2), elem%y(3), elem%y(4)
-      WRITE(fid, '(4(es14.6e2))') elem%z(1), elem%z(2), elem%z(3), elem%z(4)
+      WRITE(fid3d, '(4(es14.6e2))') elem%x(1), elem%x(2), elem%x(3), elem%x(4)
+      WRITE(fid3d, '(4(es14.6e2))') elem%y(1), elem%y(2), elem%y(3), elem%y(4)
+      WRITE(fid3d, '(4(es14.6e2))') elem%z(1), elem%z(2), elem%z(3), elem%z(4)
 
-      WRITE(fid, '(4(es14.6e2))') elem%x(5), elem%x(6), elem%x(7), elem%x(8)
-      WRITE(fid, '(4(es14.6e2))') elem%y(5), elem%y(6), elem%y(7), elem%y(8)
-      WRITE(fid, '(4(es14.6e2))') elem%z(5), elem%z(6), elem%z(7), elem%z(8)
+      WRITE(fid3d, '(4(es14.6e2))') elem%x(5), elem%x(6), elem%x(7), elem%x(8)
+      WRITE(fid3d, '(4(es14.6e2))') elem%y(5), elem%y(6), elem%y(7), elem%y(8)
+      WRITE(fid3d, '(4(es14.6e2))') elem%z(5), elem%z(6), elem%z(7), elem%z(8)
+
+      IF (isFirstFace) THEN
+
+        WRITE(fid2d, '(a18,1x,i10,a4,i3,a1,a11,i5)') &
+          '          ELEMENT', elem%num, ' [  ', 1, elem%groupL, ']    GROUP ', elem%group
+
+        WRITE(fid2d, '(4(es14.6e2))') elem%x(1), elem%x(2), elem%x(3), elem%x(4)
+        WRITE(fid2d, '(4(es14.6e2))') elem%y(1), elem%y(2), elem%y(3), elem%y(4)
+      ENDIF
 
    end subroutine writeElement
 
 !------------------------------------------------------------------------------
 
-   subroutine writeCurvedEdges (fid, elem)
+   subroutine writeCurvedEdges (fid3d, fid2d, elem, isFirstFace)
 
       IMPLICIT NONE
       ! input variables
-      INTEGER,       INTENT(IN) :: fid
+      INTEGER,       INTENT(IN) :: fid3d
+      INTEGER,       INTENT(IN) :: fid2d
       TYPE(element), INTENT(IN) :: elem
+      LOGICAL,       INTENT(IN) :: isFirstFace
       ! local variables
       INTEGER :: j
 
       IF ( nEl < 1e3 ) THEN
 
-         DO j = 1, 8 ! cycle on the six edges
+         DO j = 1, 8 ! cycle on the eight edges
             IF ( elem%curvedEdge(j) ) THEN
-               WRITE(fid, '(i3,i3,f10.5,4(f14.5),5x,a1)') &
+               WRITE(fid3d, '(i3,i3,f10.5,4(f14.5),5x,a1)') &
                   j, elem%num, elem%curvedEdgeR(j), 0d0, 0d0, 0d0, 0d0, 'C'
             ENDIF
          ENDDO
-
       ELSEIF ( nEl < 1e6 ) THEN
 
-         DO j = 1, 8 ! cycle on the six edges
+         DO j = 1, 8 ! cycle on the eight edges
             IF ( elem%curvedEdge(j) ) THEN
-               WRITE(fid, '(i2,i6,f10.5,4(f14.5),5x,a1)') &
+               WRITE(fid3d, '(i2,i6,f10.5,4(f14.5),5x,a1)') &
                   j, elem%num, elem%curvedEdgeR(j), 0d0, 0d0, 0d0, 0d0, 'C'
             ENDIF
          ENDDO
-
       ELSE
 
-         DO j = 1, 8 ! cycle on the six edges
+         DO j = 1, 8 ! cycle on the eight edges
             IF ( elem%curvedEdge(j) ) THEN
-               WRITE(fid, '(i2,i10,f10.5,4(f14.5),5x,a1)') &
+               WRITE(fid3d, '(i2,i10,f10.5,4(f14.5),5x,a1)') &
                   j, elem%num, elem%curvedEdgeR(j), 0d0, 0d0, 0d0, 0d0, 'C'
             ENDIF
          ENDDO
+      ENDIF
 
+      IF (isFirstFace) THEN
+        IF ( nFpp < 1e3 ) THEN
+
+          DO j = 1, 4 ! cycle on the first four edges
+          IF ( elem%curvedEdge(j) ) THEN
+            WRITE(fid2d, '(i3,i3,f10.5,4(f14.5),5x,a1)') &
+              j, elem%num, elem%curvedEdgeR(j), 0d0, 0d0, 0d0, 0d0, 'C'
+          ENDIF
+          ENDDO
+        ELSEIF ( nFpp < 1e6 ) THEN
+
+          DO j = 1, 4 ! cycle on the first four edges
+          IF ( elem%curvedEdge(j) ) THEN
+            WRITE(fid2d, '(i2,i6,f10.5,4(f14.5),5x,a1)') &
+              j, elem%num, elem%curvedEdgeR(j), 0d0, 0d0, 0d0, 0d0, 'C'
+          ENDIF
+          ENDDO
+        ELSE
+
+          DO j = 1, 4 ! cycle on the first four edges
+          IF ( elem%curvedEdge(j) ) THEN
+            WRITE(fid2d, '(i2,i10,f10.5,4(f14.5),5x,a1)') &
+              j, elem%num, elem%curvedEdgeR(j), 0d0, 0d0, 0d0, 0d0, 'C'
+          ENDIF
+          ENDDO
+        ENDIF
       ENDIF
 
    end subroutine writeCurvedEdges
 
 !------------------------------------------------------------------------------
 
-   subroutine writeBoundaryConditions (fid, elem)
+   subroutine writeBoundaryConditions (fid3d, fid2d, elem, isFirstFace)
 
       IMPLICIT NONE
       ! input variables
-      INTEGER,       INTENT(IN) :: fid
+      INTEGER,       INTENT(IN) :: fid3d
+      INTEGER,       INTENT(IN) :: fid2d
       TYPE(element), INTENT(IN) :: elem
+      LOGICAL,       INTENT(IN) :: isFirstFace
       ! local variables
       INTEGER :: j
 
       IF ( nEl < 1e3 ) THEN
 
          DO j = 1, 6 ! cycle on the six faces
-            WRITE(fid, '(1x,a2,1x,i3,i3,5(g14.6))') &
+            WRITE(fid3d, '(1x,a2,1x,i3,i3,5(g14.6))') &
                elem%bcType(j), elem%num, j, elem%bcParameters(j,:)
          ENDDO
 
       ELSEIF ( nEl < 1e5 ) THEN
 
          DO j = 1, 6 ! cycle on the six faces
-            WRITE(fid, '(1x,a2,1x,i5,i1,5(g14.6))') &
+            WRITE(fid3d, '(1x,a2,1x,i5,i1,5(g14.6))') &
                elem%bcType(j), elem%num, j, elem%bcParameters(j,:)
          ENDDO
 
       ELSEIF ( nEl < 1e6 ) THEN
 
          DO j = 1, 6 ! cycle on the six faces
-            WRITE(fid, '(1x,a2,1x,i6,5(g14.6))') &
+            WRITE(fid3d, '(1x,a2,1x,i6,5(g14.6))') &
                elem%bcType(j), elem%num, elem%bcParameters(j,:)
          ENDDO
-
       ELSE
 
          DO j = 1, 6 ! cycle on the six faces
-            WRITE(fid, '(1x,a2,1x,i11,i1,5(g18.11))') &
+            WRITE(fid3d, '(1x,a2,1x,i11,i1,5(g18.11))') &
                elem%bcType(j), elem%num, j, elem%bcParameters(j,:)
          ENDDO
+      ENDIF
 
+      IF (isFirstFace) THEN
+        IF ( nFpp < 1e3 ) THEN
+          DO j = 1, 4 ! cycle on the four faces
+            WRITE(fid2d, '(1x,a2,1x,i3,i3,5(g14.6))') &
+              elem%bcType(j), elem%num, j, elem%bcParameters(j,:)
+          ENDDO
 
+        ELSEIF ( nFpp < 1e5 ) THEN
+          DO j = 1, 4 ! cycle on the four faces
+            WRITE(fid2d, '(1x,a2,1x,i5,i1,5(g14.6))') &
+              elem%bcType(j), elem%num, j, elem%bcParameters(j,:)
+          ENDDO
+
+        ELSEIF ( nFpp < 1e6 ) THEN
+          DO j = 1, 4 ! cycle on the four faces
+            WRITE(fid2d, '(1x,a2,1x,i6,5(g14.6))') &
+              elem%bcType(j), elem%num, elem%bcParameters(j,:)
+          ENDDO
+
+        ELSE
+
+          DO j = 1, 4 ! cycle on the four faces
+            WRITE(fid2d, '(1x,a2,1x,i11,i1,5(g18.11))') &
+              elem%bcType(j), elem%num, j, elem%bcParameters(j,:)
+          ENDDO
+
+        ENDIF
       ENDIF
 
    end subroutine writeBoundaryConditions
