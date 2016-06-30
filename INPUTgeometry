@@ -1,16 +1,17 @@
 0.5    # R   = pipe radius
-10     # L   = pipe length
+5      # L   = pipe length
 #
-9      # nR  = number of elements on the radius (has to be > nTh/8)
+5      # nR  = number of elements on the radius (has to be > nTh/8)
 1.5    # rP0 = radius "penalization", inner part
 2.2    # rP1 = radius "penalization", outer part
-20     # nL  = number of elements along the pipe
+5      # nL  = number of elements along the pipe
 8      # nTh = number of circular sweeps (has to be >= 8 and a power of 2)
 #
 .9     # rR  = element ratio along the radius
 1      # rL  = element ratio along the pipe
 #
 10.    # Re
+1e-3   # DT
 10     # NSTEPS
 1      # IOSTEP
 #

@@ -64,7 +64,7 @@ program pipeMeshNek
    INTEGER        :: nPolynom ! Polynomial degree (-> nPolynom+1 Grid points)
    REAL(KIND=8), DIMENSION(20) :: xGridNodes ! (Local) Lobatto node-positions
    INTEGER        :: nsteps, iostep
-   REAL(KIND=8)   :: Re
+   REAL(KIND=8)   :: Re, dt
    REAL(KIND=8)   :: reTau ! Friction-Reynolds Number (Re_tau)
    REAL(KIND=8)   :: deltaR, deltaRmin, deltaRmax, thMin, thMax ! wall-unit mesh-quality measures
    REAL(KIND=8)   :: deltaZmin, deltaZmax, deltaRThmin, deltaRThmax ! 
@@ -110,6 +110,7 @@ program pipeMeshNek
    READ(fid1,*) rL
    READ(fid1,*) ! jump one line
    READ(fid1,*) Re
+   READ(fid1,*) dt
    READ(fid1,*) nsteps
    READ(fid1,*) iostep
    READ(fid1,*) ! jump one line
@@ -982,7 +983,7 @@ program pipeMeshNek
       STOP
    ELSE
       OPEN(UNIT=fid3d, FILE=trim(nameRea), STATUS='new', ACTION='write')
-      CALL initializeMeshFile(fid3d, Re, nsteps, iostep, debugFlag)
+      CALL initializeMeshFile(fid3d, Re, dt, nsteps, iostep, debugFlag)
    ENDIF
 
    WRITE(nameRea,'(a)') 'base2d.rea'
@@ -998,7 +999,7 @@ program pipeMeshNek
       STOP
    ELSE
       OPEN(UNIT=fid2d, FILE=trim(nameRea), STATUS='new', ACTION='write')
-      CALL initializeMeshFile(fid2d, Re, nsteps, iostep, debugFlag)
+      CALL initializeMeshFile(fid2d, Re, dt, nsteps, iostep, debugFlag)
    ENDIF
 
 !==============================================================================
@@ -1125,12 +1126,12 @@ contains
 
 !------------------------------------------------------------------------------
 
-   subroutine initializeMeshFile (fid, Re, nsteps, iostep, debugFlag)
+   subroutine initializeMeshFile (fid, Re, dt, nsteps, iostep, debugFlag)
    
       IMPLICIT NONE
       ! input variables
       INTEGER,      INTENT(IN) :: fid, nsteps, iostep
-      REAL(KIND=8), INTENT(IN) :: Re
+      REAL(KIND=8), INTENT(IN) :: Re, dt
       LOGICAL,      INTENT(IN) :: debugFlag
 
       WRITE(fid, '(a)') ' ****** PARAMETERS *****'
@@ -1159,7 +1160,7 @@ contains
       else
          WRITE(fid, '(3x,i7,a17)') nsteps, '     P011: NSTEPS'
       endif
-      WRITE(fid, '(a)') '   5.0E-03     P012: DT'
+      WRITE(fid, '(3x,es8.2,a13)') dt, '    P012: DT'
       WRITE(fid, '(a)') '   0.00000     P013: IOCOMM'
       WRITE(fid, '(a)') '   0.00000     P014: IOTIME'
       if ( debugFlag ) then
