@@ -63,6 +63,8 @@ program pipeMeshNek
    INTEGER        :: nFpp4 ! number of elements on a quarter of a face of the pipe
    INTEGER        :: nPolynom ! Polynomial degree (-> nPolynom+1 Grid points)
    REAL(KIND=8), DIMENSION(20) :: xGridNodes ! (Local) Lobatto node-positions
+   INTEGER        :: nsteps, iostep
+   REAL(KIND=8)   :: Re
    REAL(KIND=8)   :: reTau ! Friction-Reynolds Number (Re_tau)
    REAL(KIND=8)   :: deltaR, deltaRmin, deltaRmax, thMin, thMax ! wall-unit mesh-quality measures
    REAL(KIND=8)   :: deltaZmin, deltaZmax, deltaRThmin, deltaRThmax ! 
@@ -106,6 +108,10 @@ program pipeMeshNek
    READ(fid1,*) ! jump one line
    READ(fid1,*) rR
    READ(fid1,*) rL
+   READ(fid1,*) ! jump one line
+   READ(fid1,*) Re
+   READ(fid1,*) nsteps
+   READ(fid1,*) iostep
    READ(fid1,*) ! jump one line
    READ(fid1,*) nPolynom 
    READ(fid1,*) reTau 
@@ -976,7 +982,7 @@ program pipeMeshNek
       STOP
    ELSE
       OPEN(UNIT=fid3d, FILE=trim(nameRea), STATUS='new', ACTION='write')
-      CALL initializeMeshFile(fid3d, debugFlag)
+      CALL initializeMeshFile(fid3d, Re, nsteps, iostep, debugFlag)
    ENDIF
 
    WRITE(nameRea,'(a)') 'base2d.rea'
@@ -992,7 +998,7 @@ program pipeMeshNek
       STOP
    ELSE
       OPEN(UNIT=fid2d, FILE=trim(nameRea), STATUS='new', ACTION='write')
-      CALL initializeMeshFile(fid2d, debugFlag)
+      CALL initializeMeshFile(fid2d, Re, nsteps, iostep, debugFlag)
    ENDIF
 
 !==============================================================================
@@ -1119,12 +1125,13 @@ contains
 
 !------------------------------------------------------------------------------
 
-   subroutine initializeMeshFile (fid, debugFlag)
+   subroutine initializeMeshFile (fid, Re, nsteps, iostep, debugFlag)
    
       IMPLICIT NONE
       ! input variables
-      INTEGER, INTENT(IN) :: fid
-      LOGICAL, INTENT(IN) :: debugFlag
+      INTEGER,      INTENT(IN) :: fid, nsteps, iostep
+      REAL(KIND=8), INTENT(IN) :: Re
+      LOGICAL,      INTENT(IN) :: debugFlag
 
       WRITE(fid, '(a)') ' ****** PARAMETERS *****'
       WRITE(fid, '(a)') '   2.6000      NEKTON VERSION'
@@ -1137,7 +1144,7 @@ contains
       if ( debugFlag ) then
          WRITE(fid, '(a)') '  -10.         P002: VISCOS'
       else
-         WRITE(fid, '(a)') '  -5300.       P002: VISCOS'
+         WRITE(fid, '(2x,f8.2,a17)') -Re, '     P002: VISCOS'
       endif
       WRITE(fid, '(a)') '   0.00000     P003: : : BETAG'
       WRITE(fid, '(a)') '   0.00000     P004: : : GTHETA'
@@ -1150,7 +1157,7 @@ contains
       if ( debugFlag ) then
          WRITE(fid, '(a)') '   3           P011: NSTEPS'
       else
-         WRITE(fid, '(a)') '   40003       P011: NSTEPS'
+         WRITE(fid, '(3x,i7,a17)') nsteps, '     P011: NSTEPS'
       endif
       WRITE(fid, '(a)') '   5.0E-03     P012: DT'
       WRITE(fid, '(a)') '   0.00000     P013: IOCOMM'
@@ -1158,7 +1165,7 @@ contains
       if ( debugFlag ) then
          WRITE(fid, '(a)') '   1           P015: IOSTEP'
       else
-         WRITE(fid, '(a)') '   200         P015: IOSTEP'
+         WRITE(fid, '(3x,i7,a17)') iostep, '     P015: IOSTEP'
       endif
       WRITE(fid, '(a)') '   0.00000     P016: PSSOLVER: 0=default'
       WRITE(fid, '(a)') '   1.00000     P017:'
