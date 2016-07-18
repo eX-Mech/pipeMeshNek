@@ -1215,7 +1215,7 @@ contains
       WRITE(fid, '(a)') '   0.00000     P060: !=0 --> init. velocity to small nonzero'
       WRITE(fid, '(a)') '   0.00000     P061:'
       WRITE(fid, '(a)') '   0.00000     P062: >0 --> force byte_swap for output'
-      WRITE(fid, '(a)') '   0.00000     P063: =8 --> force 8-byte output'
+      WRITE(fid, '(a)') '   8.00000     P063: =8 --> force 8-byte output'
       WRITE(fid, '(a)') '   0.00000     P064: =1 --> perturbation restart'
       WRITE(fid, '(a)') '   1.00000     P065: #iofiles (eg, 0 or 64); <0 --> sep. dirs'
       WRITE(fid, '(a)') '   6.00000     P066: output : <0=ascii, else binary'
