@@ -983,10 +983,12 @@ program pipeMeshNek
       WRITE(*,*) 'OVERWRITING.'
       !WRITE(*,*) 'STOP.'
       !STOP
-   ELSE
-      OPEN(UNIT=fid3d, FILE=trim(nameRea), STATUS='new', ACTION='write')
-      CALL initializeMeshFile(fid3d, Re, dt, nsteps, iostep, debugFlag)
    ENDIF
+   !ELSE
+      !OPEN(UNIT=fid3d, FILE=trim(nameRea), STATUS='new', ACTION='write')
+      OPEN(UNIT=fid3d, FILE=trim(nameRea), ACTION='write')
+      CALL initializeMeshFile(fid3d, Re, dt, nsteps, iostep, debugFlag)
+   !ENDIF
 
    WRITE(nameRea,'(a)') 'base2d.rea'
 
@@ -1001,10 +1003,12 @@ program pipeMeshNek
       WRITE(*,*) 'OVERWRITING.'
       !WRITE(*,*) 'STOP.'
       !STOP
-   ELSE
-      OPEN(UNIT=fid2d, FILE=trim(nameRea), STATUS='new', ACTION='write')
-      CALL initializeMeshFile(fid2d, Re, dt, nsteps, iostep, debugFlag)
    ENDIF
+   !ELSE
+      !OPEN(UNIT=fid2d, FILE=trim(nameRea), STATUS='new', ACTION='write')
+      OPEN(UNIT=fid2d, FILE=trim(nameRea), ACTION='write')
+      CALL initializeMeshFile(fid2d, Re, dt, nsteps, iostep, debugFlag)
+   !ENDIF
 
 !==============================================================================
 ! write element data
