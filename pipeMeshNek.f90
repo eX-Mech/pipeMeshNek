@@ -996,7 +996,7 @@ program pipeMeshNek
       !WRITE(*,*) '*** ERROR:                        ***'
       WRITE(*,*) '*** WARNING:                      ***'
       WRITE(*,*) '*** File already present          ***'
-      WRITE(*,*) '*** ', trim(nameRea), '                      ***'
+      WRITE(*,*) '*** ', trim(nameRea), '                    ***'
       WRITE(*,*) '*************************************'
       WRITE(*,*) 'OVERWRITING.'
       !WRITE(*,*) 'STOP.'
