@@ -12,3 +12,7 @@ pipeMeshNek
 # no backup files
 #
 *.bak
+#
+# no production files
+#
+*.rea
