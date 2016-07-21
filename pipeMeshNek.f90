@@ -975,12 +975,14 @@ program pipeMeshNek
    INQUIRE (FILE=trim(nameRea), EXIST=existFlag)
    IF (existFlag) THEN
       WRITE(*,*) '*************************************'
-      WRITE(*,*) '*** ERROR:                        ***'
+      !WRITE(*,*) '*** ERROR:                        ***'
+      WRITE(*,*) '*** WARNING:                      ***'
       WRITE(*,*) '*** File already present          ***'
       WRITE(*,*) '*** ', trim(nameRea), '                      ***'
       WRITE(*,*) '*************************************'
-      WRITE(*,*) 'STOP.'
-      STOP
+      WRITE(*,*) 'OVERWRITING.'
+      !WRITE(*,*) 'STOP.'
+      !STOP
    ELSE
       OPEN(UNIT=fid3d, FILE=trim(nameRea), STATUS='new', ACTION='write')
       CALL initializeMeshFile(fid3d, Re, dt, nsteps, iostep, debugFlag)
@@ -991,12 +993,14 @@ program pipeMeshNek
    INQUIRE (FILE=trim(nameRea), EXIST=existFlag)
    IF (existFlag) THEN
       WRITE(*,*) '*************************************'
-      WRITE(*,*) '*** ERROR:                        ***'
+      !WRITE(*,*) '*** ERROR:                        ***'
+      WRITE(*,*) '*** WARNING:                      ***'
       WRITE(*,*) '*** File already present          ***'
       WRITE(*,*) '*** ', trim(nameRea), '                      ***'
       WRITE(*,*) '*************************************'
-      WRITE(*,*) 'STOP.'
-      STOP
+      WRITE(*,*) 'OVERWRITING.'
+      !WRITE(*,*) 'STOP.'
+      !STOP
    ELSE
       OPEN(UNIT=fid2d, FILE=trim(nameRea), STATUS='new', ACTION='write')
       CALL initializeMeshFile(fid2d, Re, dt, nsteps, iostep, debugFlag)
@@ -1006,7 +1010,7 @@ program pipeMeshNek
 ! write element data
 
    WRITE(fid3d, '(a)') '  ***** MESH DATA *****  6 lines are X,Y,Z;X,Y,Z. Columns corners 1-4;5-8'
-   WRITE(fid3d, *)     nEl, ' 3 ', nEl, ' NEL,NDIM,NELV'
+   WRITE(fid3d, *)     nEl,  ' 3 ', nEl,  ' NEL,NDIM,NELV'
 
    WRITE(fid2d, '(a)') '  ***** MESH DATA ***** 1st line is X of corner 1,2,3,4. 2nd line is Y'
    WRITE(fid2d, *)     nFpp, ' 2 ', nFpp, ' NEL,NDIM,NELV'
