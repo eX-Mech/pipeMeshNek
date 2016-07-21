@@ -16,3 +16,7 @@ pipeMeshNek
 # no production files
 #
 *.rea
+#
+# no pymech
+#
+pymech
