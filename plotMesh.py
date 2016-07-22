@@ -56,8 +56,23 @@ def arc_2points(x, y, r):
 	#
 	tt1 = np.arctan2( (y1-yc), (x1-xc) )
 	tt2 = np.arctan2( (y2-yc), (x2-xc) )
+	#
+	if (abs(tt1)<1e-3):
+		tt1 = 0
+	if (abs(tt2)<1e-3):
+		tt2 = 0
+	#
+	if (tt1 < 0):
+		tt1 = tt1 + 2*np.pi
+	if (tt2 < 0):
+		tt2 = tt2 + 2*np.pi
+	#
 	start_t = min(tt1,tt2)
 	end_t   = max(tt1,tt2)
+	#
+	if (start_t==0 and end_t>3./2.*np.pi):
+		start_t = end_t
+		end_t = 2*np.pi
 	#
 	tt = np.linspace(start_t, end_t, 100)
 	xx = xc + np.abs(r)*np.cos(tt)
@@ -83,7 +98,7 @@ for iel in range(field.nel):
 	yv = np.reshape(field.elem[iel].pos[1, 0,:,:], (4,1) )
 	xl = (np.min(xv)+np.max(xv))/2
 	yl = (np.min(yv)+np.max(yv))/2
-	plt.text(xl, yl, '%d' % (iel+1))
+	plt.text(xl, yl, '%d' % (iel+1), horizontalalignment='center', verticalalignment='center')
 	for iedge in range(nedges):
 		xe = np.roll(xv, -iedge)[0:2]
 		ye = np.roll(yv, -iedge)[0:2]
@@ -98,4 +113,4 @@ plt.title(r'2D section of the mesh')
 plt.grid(True)
 plt.axis('equal')
 plt.draw()
-plt.show(block=True)
+plt.show(block=False)
