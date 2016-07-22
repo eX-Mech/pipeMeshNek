@@ -3,8 +3,6 @@
 # load and plot 2D mesh created by pipeMeshNek
 # jcanton@mech.kth.se
 
-import pdb
-
 #------------------------------------------------------------------------------
 # import pymech
 #
@@ -100,4 +98,4 @@ plt.title(r'2D section of the mesh')
 plt.grid(True)
 plt.axis('equal')
 plt.draw()
-plt.show(block=False)
+plt.show(block=True)
