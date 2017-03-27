@@ -94,8 +94,8 @@ plt.clf()
 
 nedges = 4
 for iel in range(field.nel):
-	xv = np.reshape(field.elem[iel].pos[0, 0,:,:], (4,1) )
-	yv = np.reshape(field.elem[iel].pos[1, 0,:,:], (4,1) )
+	xv = np.array([field.elem[iel].pos[0, 0,0,0], field.elem[iel].pos[0, 0,0,1], field.elem[iel].pos[0, 0,1,1], field.elem[iel].pos[0, 0,1,0]])
+	yv = np.array([field.elem[iel].pos[1, 0,0,0], field.elem[iel].pos[1, 0,0,1], field.elem[iel].pos[1, 0,1,1], field.elem[iel].pos[1, 0,1,0]])
 	xl = (np.min(xv)+np.max(xv))/2
 	yl = (np.min(yv)+np.max(yv))/2
 	plt.text(xl, yl, '%d' % (iel+1), horizontalalignment='center', verticalalignment='center')
@@ -113,4 +113,4 @@ plt.title(r'2D section of the mesh')
 plt.grid(True)
 plt.axis('equal')
 plt.draw()
-plt.show(block=True)
+plt.show(block=False)
