@@ -1361,7 +1361,7 @@ contains
       ! local variables
 
       WRITE(fid3d, '(a18,1x,i10,a4,i3,a1,a11,i5)') &
-         '            ELEMENT', elem%num, ' [  ', 1, elem%groupL, ']    GROUP ', elem%group
+         '           ELEMENT', elem%num, ' [  ', 1, elem%groupL, ']    GROUP ', elem%group
 
       WRITE(fid3d, '(4(es14.6e2))') elem%x(1), elem%x(2), elem%x(3), elem%x(4)
       WRITE(fid3d, '(4(es14.6e2))') elem%y(1), elem%y(2), elem%y(3), elem%y(4)
