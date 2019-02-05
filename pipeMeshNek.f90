@@ -64,6 +64,7 @@ program pipeMeshNek
    INTEGER        :: nPolynom ! Polynomial degree (-> nPolynom+1 Grid points)
    REAL(KIND=8), DIMENSION(20) :: xGridNodes ! (Local) Lobatto node-positions
    INTEGER        :: nsteps, iostep
+   CHARACTER(LEN=2) :: pipeBC
    REAL(KIND=8)   :: Re, dt
    REAL(KIND=8)   :: reTau ! Friction-Reynolds Number (Re_tau)
    REAL(KIND=8)   :: deltaR, deltaRmin, deltaRmax, thMin, thMax ! wall-unit mesh-quality measures
@@ -109,6 +110,7 @@ program pipeMeshNek
    READ(fid1,*) rR
    READ(fid1,*) rL
    READ(fid1,*) ! jump one line
+   READ(fid1,*) pipeBC
    READ(fid1,*) Re
    READ(fid1,*) dt
    READ(fid1,*) nsteps
@@ -884,7 +886,7 @@ program pipeMeshNek
       elem(3*nFpp4+nSq**2+nTh/4*j)%bcParameters(2,1) = nSq**2+1+(j-1)*nTh/4
    ENDDO
    !
-	 ! advance the face to the end of the pipe
+   ! advance the face to the end of the pipe
    !
    de = rL * dL
    deltaZmin = min(deltaZmin,de)
@@ -912,11 +914,16 @@ program pipeMeshNek
    !
    DO j = i-nFpp+1, i
 
+      IF (pipeBC .eq. 'IO') THEN
+         elem(j)%bcType(6) = 'O'
+         elem(j-nPp+nFpp)%bcType(5) = 'v'
+      ELSEIF (pipeBC .eq. 'P ') THEN
+         elem(j)%bcType(6) = 'P'
+         elem(j-nPp+nFpp)%bcType(5) = 'P'
+      ENDIF
       ! write last face
-      elem(j)%bcType(6) = 'P' ! O
       elem(j)%bcParameters(6,1) = j-nPp+nFpp
       ! and correct periodicity on the first face
-      elem(j-nPp+nFpp)%bcType(5) = 'P' ! v
       elem(j-nPp+nFpp)%bcParameters(5,1) = j
 
    ENDDO
