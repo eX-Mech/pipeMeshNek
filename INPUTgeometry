@@ -10,6 +10,7 @@
 .9     # rR  = element ratio along the radius
 1      # rL  = element ratio along the pipe
 #
+IO     # pipeBC = 'IO' / 'P ' inflow-outflow or periodic boundary conditions
 10.    # Re
 1e-3   # DT
 10     # NSTEPS
