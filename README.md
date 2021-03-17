@@ -16,5 +16,5 @@ by executing
 
 `python plotMesh.py`
 
-The [pymech](https://github.com/jcanton/pymech) suite (automatically fetched)
+The [pymech](https://github.com/eX-Mech/pymech) suite (automatically fetched)
 is used for reading the .rea file.
